@@ -1,17 +1,38 @@
 #!/bin/bash
 cd `dirname $0`/info
-curr_ip=`curl -m 10 ipinfo.io/ip`
+if [ "$curr_ip" = "" ]; then
+    curr_ip=`curl -m 10 ip.3322.net`
+fi
+if [ "$curr_ip" = "" ]; then
+    curr_ip=`curl -m 10 ifconfig.me`
+fi
+if [ "$curr_ip" = "" ]; then
+    curr_ip=`curl -m 10 ident.me`
+fi
+if [ "$curr_ip" = "" ]; then
+    curr_ip=`curl -m 10 icanhazip.com`
+fi
+if [ "$curr_ip" = "" ]; then
+    curr_ip=`curl -m 10 ipecho.net/plain`
+fi
+if [ "$curr_ip" = "" ]; then
+    curr_ip=`curl -m 10 whatismyip.akamai.com`
+fi
+if [ "$curr_ip" = "" ]; then
+    curr_ip=`curl -m 10 myip.dnsomatic.com`
+fi
+git fetch >> /dev/null
+git reset FETCH_HEAD --hard >> /dev/null
 last_ip=`cat ip.ini`
-if [ "$curr_ip" = "$last_ip" ] || [ "$curr_ip" = "" ]; then
-        :
+if [ "$curr_ip" = "" -o "$curr_ip" = "$last_ip" ]; then
+    :
 else
-        host_name=`hostname`
-        version=`date "+%Y/%m/%d %H:%M:%S"`
-        git pull
-        git branch $host_name
-        git checkout $host_name
-        echo $curr_ip > ip.ini
-        git add .
-        git commit -m $version
-        git push -u origin $host_name -f
+    host_name=`hostname`
+    version=`date "+%Y/%m/%d %H:%M:%S"`
+    git branch "$host_name" >> /dev/null
+    git checkout "$host_name" >> /dev/null
+    echo $curr_ip > ip.ini
+    git add .
+    git commit -m "$version" --amend 
+    git push -u origin "$host_name" -f
 fi

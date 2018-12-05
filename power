@@ -1,11 +1,11 @@
 #!/bin/bash
 
 if [[ "$*" = "-s" || "$*" = "/s" ]]; then
-	/mnt/c/Windows/System32/cmd.exe /c shutdown -s -hybrid -t 0
+    /mnt/c/Windows/System32/cmd.exe /c shutdown -s -hybrid -t 0
 elif [[ "$*" = "-r" || "$*" = "/r" ]]; then
-	/mnt/c/Windows/System32/cmd.exe /c shutdown -r -t 0
+    /mnt/c/Windows/System32/cmd.exe /c shutdown -r -t 0
 elif [[ "$*" = "-q" || "$*" = "/q" ]]; then
-	/mnt/d/Applications/utils/nircmd/nircmd.exe standby
+    /mnt/d/Applications/utils/nircmd/nircmd.exe standby
 else
-	/mnt/c/Windows/System32/cmd.exe /c shutdown $*
+    /mnt/c/Windows/System32/cmd.exe /c shutdown $*
 fi
