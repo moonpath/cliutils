@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+import socketserver
+
+
+class SocketHandler(socketserver.BaseRequestHandler):
+    def __init__(self, request, client_address, server):
+        self.received = None
+        print("Connect From {0}:{1}".format(*client_address))
+        super().__init__(request, client_address, server)
+        return
+
+    def handle(self):
+        while True:
+            self.received = self.request.recv(8192).decode('UTF-8', 'ignore').strip()
+            if not self.received:
+                print("Disconnect From {0}:{1}".format(*self.client_address))
+                break
+            self.write()
+            feedback = "Received: {0}\n".format(self.received).encode("utf8")
+            self.request.sendall(feedback)
+        return
+
+    def write(self):
+        if "send" == self.received[:4]:
+            with open("/tmp/achieved.log", 'a') as file:
+                file.write(self.received)
+        return
+    pass
+
+
+def main():
+    host = '127.0.0.1'
+    port = 1234
+    server = socketserver.ThreadingTCPServer((host, port), SocketHandler)
+    server.serve_forever()
+    return
+
+
+if __name__ == '__main__':
+    main()

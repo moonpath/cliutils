@@ -1,0 +1,77 @@
+#!/usr/bin/python3
+import os
+import sys
+import time
+
+
+def main():
+    pa = ParseArgs(sys.argv[1:])
+    try:
+        redo(pa)
+    except KeyboardInterrupt:
+        pass
+    return
+
+
+def redo(pa):
+    times = int(pa.get_or_else("-t", 0))
+    interval = int(pa.get_or_else("-i", 1))
+
+    try:
+        if times != 0:
+            while True:
+                os.system(pa.get("-c"))
+                times -= 1
+                if times <= 0:
+                    break
+                time.sleep(interval)
+        else:
+            while True:
+                os.system(pa.get("-c"))
+                time.sleep(interval)
+    except Exception as e:
+        print(e)
+    return
+
+
+class ParseArgs:
+    def __init__(self, args):
+        split_args = []
+        for i in range(len(args)):
+            if (len(args[i]) > 0 and args[i][0] != "-") or (len(args[i]) > 1 and args[i][:2] == "--"):
+                split_args.append(args[i])
+            else:
+                for arg in args[i][1:]:
+                    split_args.append("-" + arg)
+        self.args = split_args
+        return
+
+    def has(self, key):
+        if key in self.args:
+            flag = True
+        else:
+            flag = False
+        return flag
+
+    def get(self, key):
+        if key not in self.args:
+            return None
+        index = self.args.index(key) + 1
+        if index < len(self.args) and self.args[index][0] != "-":
+            return self.args[index]
+        else:
+            return None
+
+    def get_or_else(self, key, value):
+        if key not in self.args:
+            return str(value)
+        index = self.args.index(key) + 1
+        if index < len(self.args) and self.args[index][0] != "-":
+            return self.args[index]
+        else:
+            return str(value)
+    pass
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+import os
+import sys
+import subprocess
+
+
+def path_classify(path):
+    unix_path = os.path.abspath(path)
+    dos_path = subprocess.Popen("wslpath -aw '{0}'".format(unix_path), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read().strip().decode()
+    if dos_path and not os.path.islink(path):
+        parsed_path = ("dos", "'{0}'".format(dos_path.replace("\\", "\\\\")))
+    else:
+        parsed_path = ("unix", "'{0}'".format(unix_path))
+    return parsed_path
+
+
+def main():
+    if len(sys.argv) <= 1:
+        print("recycle: delete failed!")
+        return
+    unix_paths = []
+    dos_paths = []
+    for path in sys.argv[1:]:
+        if os.path.exists(path):
+            parsed_path = path_classify(path)
+            if parsed_path[0] == "dos":
+                dos_paths.append(parsed_path[1])
+            else:
+                unix_paths.append(parsed_path[1])
+        else:
+            print("recycle: delete {0} failed!".format(path))
+
+    if unix_paths:
+        os.system("/usr/bin/trash-put {0}".format(" ".join(unix_paths)))
+    if dos_paths:
+        os.system("/mnt/d/Applications/utils/recycle/Recycle.exe -f {0}".format(" ".join(dos_paths)))
+    return
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+import os
+import sys
+import json
+
+
+def check_record(path):
+    if not os.path.exists(path):
+        try:
+            file = open(path, 'w')
+            json.dump(dict(), file, indent=4)
+            file.close()
+            flag = True
+        except Exception as e:
+            print(e)
+            flag = False
+    elif os.access(path, os.R_OK):
+        flag = True
+    else:
+        flag = False
+    return flag
+
+
+def get_record(path) -> dict:
+    file = open(path, 'r')
+    paths = json.load(file)
+    file.close()
+    return paths
+
+
+def run(record, name, *arg):
+    if name in record.keys():
+        os.system("/mnt/c/Windows/System32/cmd.exe /c start '' {0}".format(record[name] + ' ' + ' '.join(arg)))
+    else:
+        print("{0}: no such command: {1}".format(os.path.basename(sys.argv[0]), name))
+    return
+
+
+def main():
+    record_path = '/mnt/d/Applications/utils/qstart/record.json'
+    assert sys.argv.__len__() > 1
+    assert check_record(record_path)
+    record = get_record(record_path)
+    if sys.argv[1] == '-l':
+        print('\n'.join(record.keys()))
+    elif sys.argv[1] == '-e':
+        os.system("vim '{0}'".format(record_path))
+    else:
+        run(record, *sys.argv[1:])
+    return
+
+
+if __name__ == '__main__':
+    main()

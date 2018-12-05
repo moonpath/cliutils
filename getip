@@ -1,0 +1,17 @@
+#!/bin/bash
+cd `dirname $0`/info
+curr_ip=`curl -m 10 ipinfo.io/ip`
+last_ip=`cat ip.ini`
+if [ "$curr_ip" = "$last_ip" ] || [ "$curr_ip" = "" ]; then
+        :
+else
+        host_name=`hostname`
+        version=`date "+%Y/%m/%d %H:%M:%S"`
+        git pull
+        git branch $host_name
+        git checkout $host_name
+        echo $curr_ip > ip.ini
+        git add .
+        git commit -m $version
+        git push -u origin $host_name -f
+fi
