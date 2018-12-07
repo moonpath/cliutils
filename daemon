@@ -1,0 +1,39 @@
+#!/bin/sh
+# Start/stop the sysmgr daemon.
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+DESC="sysmgr daemon"
+NAME=sysmgr
+DAEMON=/mnt/d/tmp/sysmgr.sh
+PIDFILE=/var/run/sysmgr.pid
+SCRIPTNAME=/etc/init.d/"$NAME"
+EXTRA_OPTS=""
+
+. /lib/lsb/init-functions
+
+case "$1" in
+start)
+    log_daemon_msg "Starting service" "$NAME"
+    start_daemon -p $PIDFILE $DAEMON $EXTRA_OPTS
+    log_end_msg $?
+	;;
+stop)
+    log_daemon_msg "Stoping service" "$NAME"
+    killproc -p $PIDFILE $DAEMON
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && [ -e "$PIDFILE" ] && rm -f $PIDFILE
+    log_end_msg $RETVAL
+    ;;
+restart)
+    $0 stop
+    $0 start
+    ;;
+status)
+    status_of_proc -p $PIDFILE $DAEMON $NAME && exit 0 || exit $?
+    ;;
+*)
+    echo "Usage: $SCRIPTNAME {start|stop|status|restart}"
+    exit 2
+    ;;
+esac
+exit 0
