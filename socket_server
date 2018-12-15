@@ -21,7 +21,7 @@ class SocketHandler(socketserver.BaseRequestHandler):
         return
 
     def write(self):
-        if "send" == self.received[:4]:
+        if "\u0001" == self.received[0]:
             with open("/tmp/achieved.log", 'a') as file:
                 file.write(self.received)
         return
