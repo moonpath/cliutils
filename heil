@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+import os
+import sys
+import re
+import queue
+
+
+def parse(args):
+    cmd = "".join(args)
+    reg = re.compile(r"[+\-]")
+    cmd_list = reg.split(cmd)
+    cmd_dict = {}
+    loc = 0
+    cmd_dict["bare"] = 0 if cmd_list[loc] == "" else int(cmd_list[loc])
+    for i in cmd:
+        if reg.match(i):
+            loc += 1
+            if cmd_list[loc] != "":
+                cmd_dict[i] = int(cmd_list[loc])
+            else:
+                cmd_dict[i] = 0
+
+    max_num = max(cmd_dict.values())
+    max_num = max_num if max_num != 0 else 10
+    if not cmd_dict.setdefault("+", 0) | cmd_dict.setdefault("-", 0):
+        cmd_dict["+"] = max_num
+        cmd_dict["-"] = max_num
+
+    return cmd_dict
+
+
+def pipe_extract(args_parsed):
+    all_num = 0
+    queue_num = 0
+    q = queue.Queue(args_parsed["-"])
+    while True:
+        ssin = str(sys.stdin.readline())
+        if ssin != '':
+            if all_num < args_parsed["+"]:
+                print(ssin, end='')
+                queue_num += 1
+            elif all_num < queue_num + args_parsed["-"]:
+                q.put_nowait(ssin)
+            else:
+                q.get_nowait()
+                q.put_nowait(ssin)
+            all_num += 1
+        else:
+            break
+
+    while not q.empty():
+        print(q.get_nowait(), end='')
+    return
+
+
+def file_extract(cmd_dict, file_path):
+    os.system("head -n {0} {1}".format(cmd_dict["+"], file_path))
+    os.system("tail -n {0} {1}".format(cmd_dict["-"], file_path))
+    return
+
+
+def main():
+    try:
+        if len(sys.argv) <= 1:
+            pipe_extract({"+": 10, "-": 10})
+        elif os.path.exists(sys.argv[-1]):
+            args_parsed = parse(sys.argv[1:-1])
+            file_extract(args_parsed, sys.argv[-1])
+        else:
+            args_parsed = parse(sys.argv[1:])
+            pipe_extract(args_parsed)
+    except Exception as e:
+        print(e)
+    return
+
+
+if __name__ == '__main__':
+    main()
