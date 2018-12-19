@@ -1,2 +1,2 @@
 #!/bin/sh
-vim -c "set filetype=csv" -
+vim -c "set filetype=csv" -c "let b:csv_arrange_align='l*'" -
