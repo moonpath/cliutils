@@ -1,36 +1,100 @@
 #!/usr/bin/env python3
 import socketserver
+import threading
+import queue
+import time
+
+
+class MultiThread(threading.Thread):
+    def __init__(self, func, args=()):
+        threading.Thread.__init__(self)
+        self.setDaemon(True)
+        self.func = func
+        self.args = args
+        return
+
+    def run(self):
+        self.func(*self.args)
+        return
+    pass
+
+
+class Input(object):
+    client = None
+    var = queue.Queue()
+
+    @staticmethod
+    def get():
+        while True:
+            cmd = input()
+            if len(cmd) > 1 and cmd[0] == "|":
+                Input.client = cmd[1:]
+                while not Input.var.empty():
+                    Input.var.get()
+                Input.var.put("")
+            else:
+                Input.var.put(cmd)
+            time.sleep(1)
+        pass
+    pass
 
 
 class SocketHandler(socketserver.BaseRequestHandler):
     def __init__(self, request, client_address, server):
         self.received = None
+        self.status = True
         print("Connect From {0}:{1}".format(*client_address))
         super().__init__(request, client_address, server)
         return
 
     def handle(self):
-        while True:
-            self.received = self.request.recv(8192).decode('UTF-8', 'ignore').strip()
-            if not self.received:
-                print("Disconnect From {0}:{1}".format(*self.client_address))
-                break
-            self.write()
-            feedback = "Received: {0}\n".format(self.received).encode("utf8")
-            self.request.sendall(feedback)
+        rt = MultiThread(self.receive, (self,))
+        st = MultiThread(self.send, (self,))
+        ct = MultiThread(self.check, (self,))
+        rt.start()
+        st.start()
+        ct.start()
+        ct.join()
         return
 
-    def write(self):
-        if "\u0001" == self.received[0]:
-            with open("/tmp/achieved.log", 'a') as file:
-                file.write(self.received)
+    @staticmethod
+    def send(self):
+        try:
+            while True:
+                if not self.status: break
+                if Input.client == "{0}:{1}".format(*self.client_address):
+                    self.request.sendall(Input.var.get().encode("utf-8"))
+                time.sleep(1)
+        except Exception as e:
+            print(e)
+
+    @staticmethod
+    def receive(self):
+        while True:
+            self.received = self.request.recv(8192)
+            self.status = bool(self.received)
+            if not self.status: break
+            print("[root@{0}:{1}]#\n{2}".format(*self.client_address, self.received.decode('utf-8', 'ignore').strip()))
+            time.sleep(1)
+
+    @staticmethod
+    def check(self):
+        while True:
+            if not self.status:
+                print("Disconnect From {0}:{1}".format(*self.client_address))
+                self.finish()
+                break
+            time.sleep(1)
         return
     pass
 
 
 def main():
     host = '127.0.0.1'
-    port = 1234
+    port = 1107
+
+    it = MultiThread(Input.get)
+    it.start()
     server = socketserver.ThreadingTCPServer((host, port), SocketHandler)
     server.serve_forever()
     return
