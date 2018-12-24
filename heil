@@ -54,8 +54,8 @@ def pipe_extract(args_parsed):
 
 
 def file_extract(cmd_dict, file_path):
-    os.system("head -n {0} {1}".format(cmd_dict["+"], file_path))
-    os.system("tail -n {0} {1}".format(cmd_dict["-"], file_path))
+    os.system("head -n {0} {1} | sed -e 's/\r//g'".format(cmd_dict["+"], file_path))
+    os.system("tail -n {0} {1} | sed -e 's/\r//g'".format(cmd_dict["-"], file_path))
     return
 
 

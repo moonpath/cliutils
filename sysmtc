@@ -61,7 +61,7 @@ def main():
             st.close()
             wait(3)
             error_times += 1
-            if error_times % 10 == 0:
+            if error_times % 200 == 0:
                 error_times = 0
                 host = run_command(host_cmd).strip()
             st = connect_socket(host, port)
