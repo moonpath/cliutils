@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+import os
+import sys
+import time
+import shutil
+import tempfile
+
+
+def create_file_name(current_time):
+    struct_time = time.localtime(current_time)
+    name = time.strftime("%Y%m%d%H%M%S", struct_time) + ".txt"
+    return name
+
+
+def list_files(limit, base_dir):
+    files = list(map(lambda name: os.path.join(base_dir, name), os.listdir(base_dir)))
+    times = [os.stat(file).st_mtime for file in files]
+    sorted_files = list(map(lambda e: e[1], sorted(zip(times, files), reverse=True)))
+    for index in range(min(len(sorted_files), limit)):
+        print(sorted_files[index].replace("\\", "\\\\").replace(" ", "\\ "))
+    return
+
+
+def clear_files(current_time, base_dir):
+    files = os.listdir(base_dir)
+    for file in files:
+        path = os.path.join(base_dir, file)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            modified_time = os.stat(path).st_mtime
+            diff = current_time - modified_time
+            if not (0 < diff < 864000):
+                os.remove(path)
+    return
+
+
+def write_file(file_name, base_dir):
+    path = os.path.join(base_dir, file_name)
+    line = sys.stdin.readline()
+    if not line:
+        return
+    try:
+        with open(path, "w", encoding="utf8") as writer:
+            while line:
+                writer.write(line)
+                line = sys.stdin.readline()
+    except KeyboardInterrupt:
+        sys.exit(-1)
+    print(path.replace("\\", "\\\\").replace(" ", "\\ "))
+    return
+
+
+def main(args):
+    temp_dir = os.path.join(tempfile.gettempdir(), "org.mozart.store")
+    if not os.path.exists(temp_dir):
+        os.mkdir(temp_dir)
+
+    if args[1] == "-l" and args[2].isdigit():
+        list_files(int(args[2]), temp_dir)
+    elif args[1] == "-l":
+        list_files(1, temp_dir)
+    elif args[1] == "-n" and args[2] != "" and args[2].find("/") == -1:
+        current_time = time.time()
+        clear_files(current_time, temp_dir)
+        file_name = args[2]
+        write_file(file_name, temp_dir)
+    else:
+        current_time = time.time()
+        clear_files(current_time, temp_dir)
+        file_name = create_file_name(current_time)
+        write_file(file_name, temp_dir)
+    return
+
+
+if __name__ == '__main__':
+    main(sys.argv + 2 * [""])
