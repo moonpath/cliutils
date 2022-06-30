@@ -24,14 +24,12 @@ def main():
         method = "-d"
         path = sys.argv[1]
 
-    shell_path = "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
     if os.path.exists(path):
         real_path = get_dos_path(path)
-        print(real_path)
         if method == "-d":
-            os.system("{0} /c start '' '{1}'".format(shell_path, real_path))
+            os.system("powershell.exe /c start '' '{0}'".format('"' + real_path + '"'))
         elif method == "-c":
-            os.system("{0} /c rundll32.exe shell32,OpenAs_RunDLL {1}".format(shell_path, real_path))
+            os.system("rundll32.exe shell32,OpenAs_RunDLL {0}".format(real_path.replace("\\", "\\\\")))
     else:
         print("{0}: no such file or directory: {1}".format(os.path.basename(sys.argv[0]), path))
     return
